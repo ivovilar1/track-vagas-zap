@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'evolution' => [
+        'instance_token' => env('EVOLUTION_INSTANCE_TOKEN'),
+        'instance_id' => env('EVOLUTION_INSTANCE_ID'),
+    ],
 
 ];
