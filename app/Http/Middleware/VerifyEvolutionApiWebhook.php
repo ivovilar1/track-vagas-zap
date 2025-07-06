@@ -16,7 +16,10 @@ class VerifyEvolutionApiWebhook
     public function handle(Request $request, Closure $next): Response
     {
         $upCommingInstanceApiKey = $request->input('apikey');
+        Log::info($request->all());
         $instanceApiKey = config('services.evolution.instance_token');
+        Log::info($upCommingInstanceApiKey);
+        Log::info($instanceApiKey);
 
         if (empty($upCommingInstanceApiKey) || $upCommingInstanceApiKey !== $instanceApiKey) {
             return response()->json(['message' => 'Unauthorized'], 401);

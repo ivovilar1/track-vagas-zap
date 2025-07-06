@@ -37,6 +37,8 @@ return [
     'evolution' => [
         'instance_token' => env('EVOLUTION_INSTANCE_TOKEN'),
         'instance_id' => env('EVOLUTION_INSTANCE_ID'),
+        'server_url' => env('EVOLUTION_URL'),
+        'instance_name' => env('EVOLUTION_INSTANCE_NAME'),
     ],
 
 ];
