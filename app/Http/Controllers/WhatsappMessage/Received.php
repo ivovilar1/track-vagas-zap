@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class Received extends Controller
 {
@@ -26,18 +27,30 @@ class Received extends Controller
             ]);
         }
         $this->handleMessage($user, $message);
-
-        $this->sendMessage($from, __('bot_messages.welcome_new_user', ['name' => $user->name]));
     }
 
     private function sendMessage(string $from, string $message): void
     {
-        Http::withHeaders([
-            'apikey' => config('services.evolution.instance_token'),
-        ])->post(config('services.evolution.server_url') . '/message/sendText/' . config('services.evolution.instance_name'), [
-            'number' => $from,
-            'text' => $message,
-        ]);
+        try {
+            $response = Http::withHeaders([
+                'apikey' => config('services.evolution.instance_token'),
+            ])->post(config('services.evolution.server_url') . '/message/sendText/' . config('services.evolution.instance_name'), [
+                'number' => $from,
+                'text' => $message,
+            ]);
+            
+            if (!$response->successful()) {
+                Log::error('Failed to send WhatsApp message', [
+                    'phone' => $from,
+                    'response' => $response->body()
+                ]);
+            }
+        } catch (Exception $e) {
+            Log::error('WhatsApp API error', [
+                'phone' => $from,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     private function handleMessage(User $user, string $message): void
