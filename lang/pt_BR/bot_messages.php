@@ -2,7 +2,7 @@
 
 return [
     'welcome_new_user' => 'Olá :name! Seja bem-vindo ao TrackVagaZap, seu assistente pessoal para gerenciar candidaturas de emprego.',
-    'main_menu' => "Certo! O que você gostaria de fazer?\n\n".
+    'main_menu' => "O que você gostaria de fazer?\n\n".
                    "➡️ *1. Listar Candidaturas*\n".
                    "➡️ *2. Cadastrar Candidatura*\n".
                    "➡️ *3. Remover Candidatura*\n".
