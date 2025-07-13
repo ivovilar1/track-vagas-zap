@@ -17,4 +17,9 @@ return [
     'application_list_item' => "➡️ *:index. Candidatura :name*\n",
     'application_list_item_empty' => "Nenhuma candidatura encontrada.",
     'application_list_item_not_found' => "Candidatura não encontrada.",
+    'application_list' => "Aqui estão todas as suas candidaturas:\n\n",
+    'application_create_start' => "Por favor, digite o nome da empresa que você está candidatando:\n\n",
+    'application_update_start' => "Por favor, digite o nome da empresa que você está candidatando:\n\n",
+    'application_delete_start' => "Por favor, digite o nome da empresa que você está candidatando:\n\n",
+    'invalid_option' => "Opção inválida. Por favor, digite o número da opção desejada ou o nome completo da opção (ex: '1' ou 'Cadastrar Candidatura').",
 ];

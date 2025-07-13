@@ -68,12 +68,36 @@ class Received extends Controller
     private function handleIdleState(User $user, string $message): void
     {
         $this->sendMessage($user->phone, __('bot_messages.welcome_new_user', ['name' => $user->name]));
+        $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+        $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
     }
 
     private function handleMainMenuState(User $user, string $message): void
     {
-        $this->sendMessage($user->phone, __('bot_messages.main_menu'));
-        $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+        $option = trim($message);
+    
+        switch ($option) {
+            case '1':
+                $this->sendMessage($user->phone, __('bot_messages.application_list'));
+                $this->updateConversationState($user, ConversationStateEnum::APPLICATION_LIST);
+                break;
+            case '2':
+                $this->sendMessage($user->phone, __('bot_messages.application_create_start'));
+                $this->updateConversationState($user, ConversationStateEnum::APPLICATION_CREATE);
+                break;
+            case '3':
+                $this->sendMessage($user->phone, __('bot_messages.application_update_start'));
+                $this->updateConversationState($user, ConversationStateEnum::APPLICATION_UPDATE);
+                break;
+            case '4':
+                $this->sendMessage($user->phone, __('bot_messages.application_delete_start'));
+                $this->updateConversationState($user, ConversationStateEnum::APPLICATION_DELETE);
+                break;
+            default:
+                $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
+                $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+                break;
+        }
     }
 
     private function handleApplicationListState(User $user, string $message): void
