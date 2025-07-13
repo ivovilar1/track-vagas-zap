@@ -8,6 +8,7 @@ use App\Models\Apliccation;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -85,16 +86,11 @@ class Received extends Controller
                 $this->updateConversationState($user, ConversationStateEnum::APPLICATION_CREATE);
                 break;
             case '2':
-                $this->sendMessage($user->phone, __('bot_messages.application_list'));
-                $this->updateConversationState($user, ConversationStateEnum::APPLICATION_LIST);
+                $this->sendApplicationList($user);
                 break;
             case '3':
                 $this->sendMessage($user->phone, __('bot_messages.application_delete_start'));
                 $this->updateConversationState($user, ConversationStateEnum::APPLICATION_DELETE);
-                break;
-            case '4':
-                $this->sendMessage($user->phone, __('bot_messages.application_update_start'));
-                $this->updateConversationState($user, ConversationStateEnum::APPLICATION_UPDATE);
                 break;
             default:
                 $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
@@ -106,7 +102,86 @@ class Received extends Controller
 
     private function handleApplicationListState(User $user, string $message): void
     {
-        $this->sendMessage($user->phone, __('bot_messages.application_list'));
+        $context = $user->context ?? [];
+        $option = trim($message);
+
+        if (Str::lower($option) === 'cancelar') {
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            $user->update(['context' => null]);
+            return;
+        }
+
+        if (!isset($context['application_ids'])) {
+            $this->sendMessage($user->phone, __('bot_messages.error_try_again'));
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            $user->update(['context' => null]);
+            return;
+        }
+
+        if (! is_numeric($option) || ! isset($context['application_ids'][$option])) {
+            $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
+            $this->sendMessage($user->phone, __('bot_messages.application_list_prompt'));
+            return;
+        }
+
+        $applicationId = $context['application_ids'][$option];
+        $application = Apliccation::find($applicationId);
+
+        if (!$application) {
+            $this->sendMessage($user->phone, __('bot_messages.application_not_found'));
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            $user->update(['context' => null]);
+            return;
+        }
+
+        $user->update([
+            'context' => ['application_id_to_update' => $applicationId]
+        ]);
+
+        $this->sendMessage($user->phone, __('bot_messages.application_update_menu', [
+            'job_title' => $application->job_title,
+            'company_name' => $application->company_name ?? 'N/A'
+        ]));
+        $this->updateConversationState($user, ConversationStateEnum::APPLICATION_UPDATE);
+    }
+
+    private function sendApplicationList(User $user): void
+    {
+        $applications = $user->applications()->latest()->get();
+
+        if ($applications->isEmpty()) {
+            $this->sendMessage($user->phone, __('bot_messages.application_list_empty'));
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            return;
+        }
+
+        $applicationListFormatted = [];
+        $applicationIds = [];
+        foreach ($applications as $index => $application) {
+            $data = [
+                'index' => $index + 1,
+                'job_title' => $application->job_title,
+                'company_name' => $application->company_name ?? 'N/A',
+                'job_description' => $application->job_description ?? 'N/A',
+                'job_salary' => $application->job_salary ? 'R$ ' . number_format($application->job_salary, 2, ',', '.') : 'N/A',
+                'job_link' => $application->job_link ?? 'N/A',
+                'application_date' => Carbon::parse($application->application_date)->format('d/m/Y'),
+            ];
+
+            $applicationListFormatted[] = __('bot_messages.application_list_item_details', $data);
+            $applicationIds[$index + 1] = $application->id;
+        }
+
+        $this->sendMessage($user->phone, __('bot_messages.application_list_header'));
+        $this->sendMessage($user->phone, implode("\n\n", $applicationListFormatted));
+        $this->sendMessage($user->phone, __('bot_messages.application_list_prompt'));
+
+        $user->update(['context' => ['application_ids' => $applicationIds]]);
+        $this->updateConversationState($user, ConversationStateEnum::APPLICATION_LIST);
     }
 
     private function handleApplicationCreateState(User $user, string $message): void
@@ -197,7 +272,83 @@ class Received extends Controller
 
     private function handleApplicationUpdateState(User $user, string $message): void
     {
-        $this->sendMessage($user->phone, __('bot_messages.application_update'));
+        $context = $user->context ?? [];
+        $applicationId = $context['application_id_to_update'] ?? null;
+
+        if (!$applicationId) {
+            $this->sendMessage($user->phone, __('bot_messages.error_try_again'));
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            return;
+        }
+        
+        $application = Apliccation::query()->find($applicationId);
+        if (!$application) {
+            $this->sendMessage($user->phone, __('bot_messages.application_not_found'));
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            $user->update(['context' => null]);
+            return;
+        }
+
+        if (!isset($context['field_to_edit'])) {
+            $option = trim($message);
+            $fieldMap = [
+                '1' => 'company_name',
+                '2' => 'job_title',
+                '3' => 'job_description',
+                '4' => 'job_salary',
+                '5' => 'job_link',
+            ];
+
+            if ($option === '6' || Str::lower($message) === 'cancelar') {
+                $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+                $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+                $user->update(['context' => null]);
+                return;
+            }
+            
+            if (!isset($fieldMap[$option])) {
+                $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
+                $this->sendMessage($user->phone, __('bot_messages.application_update_menu', [
+                    'job_title' => $application->job_title,
+                    'company_name' => $application->company_name ?? 'N/A'
+                ]));
+                return;
+            }
+            
+            $fieldToEdit = $fieldMap[$option];
+            $context['field_to_edit'] = $fieldToEdit;
+            $user->update(['context' => $context]);
+
+            $this->sendMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __("bot_messages.application_fields.$fieldToEdit")]));
+            return;
+        }
+
+        $fieldToEdit = $context['field_to_edit'];
+        $value = Str::lower($message) === 'pular' ? null : $message;
+        $rules = [
+            'company_name' => 'nullable|string|max:255',
+            'job_title' => 'required|string|max:255',
+            'job_description' => 'nullable|string|max:255',
+            'job_salary' => 'nullable|numeric|min:0',
+            'job_link' => 'nullable|url|max:255',
+        ];
+
+        $validator = Validator::make([$fieldToEdit => $value], [$fieldToEdit => $rules[$fieldToEdit]]);
+
+        if ($validator->fails()) {
+            $this->sendMessage($user->phone, $validator->errors()->first());
+            $this->sendMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __("bot_messages.application_fields.$fieldToEdit")]));
+            return;
+        }
+
+        $application->update([$fieldToEdit => $value]);
+
+        $this->sendMessage($user->phone, __('bot_messages.application_updated_success'));
+        $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+        $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+        $user->update(['context' => null]);
     }
 
     private function handleApplicationDeleteState(User $user, string $message): void
