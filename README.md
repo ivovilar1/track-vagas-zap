@@ -1,61 +1,117 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🤖 Track Vagas Zap
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="300" alt="Laravel Logo">
 </p>
 
-## About Laravel
+<p align="center">
+  Um bot de WhatsApp para gerenciar e acompanhar suas candidaturas de emprego de forma simples e direta.
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-8.2%2B-blueviolet" alt="PHP 8.2+">
+  <img src="https://img.shields.io/badge/Laravel-11.x-FF2D20?style=flat-square&logo=laravel" alt="Laravel 11.x">
+  <img src="https://img.shields.io/badge/Status-Funcional-brightgreen" alt="Status: Funcional">
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🚀 Funcionalidades
 
-## Learning Laravel
+O Track Vagas Zap permite que você gerencie suas vagas diretamente pelo WhatsApp, oferecendo as seguintes funcionalidades:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Listar Candidaturas:** Visualize todas as vagas para as quais você se aplicou.
+- **Adicionar Nova Candidatura:** Registre uma nova aplicação em um fluxo de conversa guiado.
+- **Atualizar Candidatura:** Modifique informações de uma candidatura existente.
+- **Excluir Candidatura:** Remova uma candidatura que não é mais de seu interesse.
+- **Sair/Cancelar:** Cancele qualquer operação a qualquer momento e volte ao menu principal.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Tecnologias Utilizadas
 
-## Laravel Sponsors
+- **[Laravel 11](https://laravel.com):** Framework PHP para a estrutura do backend.
+- **[Evolution API](https://evolution-api.com/):** API não-oficial para a integração com o WhatsApp.
+- **PHP 8.2:** Linguagem de programação base.
+- **MySQL/PostgreSQL/SQLite:** Banco de dados para persistir as informações.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## ⚙️ Guia de Instalação e Configuração
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Siga os passos abaixo para configurar e executar o projeto em seu ambiente local.
 
-## Contributing
+### Pré-requisitos
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- PHP 8.2 ou superior
+- Composer
+- Um SGBD (MySQL, PostgreSQL, etc.)
+- Uma instância da [Evolution API](https://github.com/EvolutionAPI/evolution-api) funcionando.
 
-## Code of Conduct
+### Passo a Passo
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1.  **Clone o repositório:**
+    ```bash
+    git clone https://github.com/seu-usuario/track-vagas-zap.git
+    cd track-vagas-zap
+    ```
 
-## Security Vulnerabilities
+2.  **Instale as dependências:**
+    ```bash
+    composer install
+    ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3.  **Configure as Variáveis de Ambiente:**
+    - Copie o arquivo de exemplo `.env.example` para `.env`.
+      ```bash
+      cp .env.example .env
+      ```
+    - Gere a chave da aplicação.
+      ```bash
+      php artisan key:generate
+      ```
+    - Configure as variáveis de ambiente no arquivo `.env` conforme a seção abaixo.
 
-## License
+4.  **Execute as Migrations:**
+    - Este comando irá criar as tabelas necessárias no banco de dados.
+      ```bash
+      php artisan migrate
+      ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+5.  **Configure o Servidor Web:**
+    - Aponte a raiz do seu servidor (Nginx, Apache) para o diretório `public/`.
+    - Certifique-se de que o `mod_rewrite` (ou equivalente) está ativado.
+
+---
+
+## 🔑 Variáveis de Ambiente
+
+As seguintes variáveis precisam ser configuradas em seu arquivo `.env` para que o bot funcione corretamente.
+
+| Variável                 | Descrição                                                                          | Exemplo                                        |
+| ------------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `DB_CONNECTION`          | A conexão de banco de dados a ser usada.                                           | `mysql`                                        |
+| `DB_HOST`                | O host do seu banco de dados.                                                      | `127.0.0.1`                                    |
+| `DB_PORT`                | A porta do seu banco de dados.                                                     | `3306`                                         |
+| `DB_DATABASE`            | O nome do banco de dados.                                                          | `track_vagas_zap`                              |
+| `DB_USERNAME`            | O usuário de acesso ao banco.                                                      | `root`                                         |
+| `DB_PASSWORD`            | A senha de acesso ao banco.                                                        | `password`                                     |
+| `EVOLUTION_API_URL`      | A URL base da sua instância da Evolution API.                                      | `http://localhost:8080`                        |
+| `EVOLUTION_API_TOKEN`    | O token de API para autenticar com a sua instância da Evolution API.               | `seu-token-secreto`                            |
+| `EVOLUTION_INSTANCE_NAME`| O nome da instância do WhatsApp a ser utilizada na Evolution API.                  | `minha-instancia`                              |
+
+---
+
+## 🔗 Configuração do Webhook
+
+Para que o bot receba as mensagens do WhatsApp, você precisa configurar o webhook na sua instância da Evolution API.
+
+1.  **URL do Webhook:**
+    ```
+    https://seu-domino.com/api/webhook/evolution
+    ```
+
+2.  **Token Secreto:**
+    - No campo de token (ou `apikey`) do webhook na Evolution API, insira o mesmo valor que você definiu em `EVOLUTION_API_TOKEN` no seu arquivo `.env`.
+
+O bot irá validar este token em todas as requisições para garantir a segurança da comunicação.
