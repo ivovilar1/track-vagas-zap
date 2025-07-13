@@ -3,11 +3,11 @@
 return [
     'welcome_new_user' => "Olá :name! Seja bem-vindo ao TrackVagaZap, seu assistente pessoal para gerenciar candidaturas de emprego.",
     'main_menu' => "Certo! O que você gostaria de fazer?\n\n" .
-                   "➡️ *1. Cadastrar Candidatura*\n" .
-                   "➡️ *2. Listar Candidaturas*\n" .
+                   "➡️ *1. Listar Candidaturas*\n" .
+                   "➡️ *2. Cadastrar Candidatura*\n" .
                    "➡️ *3. Remover Candidatura*\n" .
-                   "➡️ *4. Atualizar Candidatura*\n\n" .
-                   "Por favor, digite o *número* da opção desejada ou o *nome completo* da opção (ex: '1' ou 'Cadastrar Candidatura').",
+                   "➡️ *4. Sair*\n\n" .
+                   "Por favor, digite o *número* da opção desejada(ex: 1).",
     'application_created_success' => "Perfeito, :name! Sua candidatura foi cadastrada com sucesso.",
     'application_list_success' => "Aqui estão todas as suas candidaturas:\n\n",
     'application_removed_success' => "Candidatura removida com sucesso.",
@@ -53,5 +53,7 @@ return [
         'job_description' => 'Descrição da Vaga',
         'job_salary' => 'Salário',
         'job_link' => 'Link da Vaga',
+    'application_handle_cancel' => 'Operação cancelada. Voltando ao menu...',
+    'application_end_conversation' => 'Obrigado por usar o TrackVagaZap! Até a próxima!',
     ]
 ];

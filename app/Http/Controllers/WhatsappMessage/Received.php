@@ -62,7 +62,7 @@ class Received extends Controller
         $messageLower = strtolower(trim($message));
 
         if (in_array($messageLower, ['cancelar', 'sair', 'menu'])) {
-            $this->sendMessage($user->phone, 'Operação cancelada. Voltando ao menu...');
+            $this->sendMessage($user->phone, __('bot_messages.application_handle_cancel'));
             $this->sendMessage($user->phone, __('bot_messages.main_menu'));
             $user->update([
                 'conversation_state' => ConversationStateEnum::MAIN_MENU,
@@ -93,15 +93,19 @@ class Received extends Controller
 
         switch ($option) {
             case '1':
-                $this->sendMessage($user->phone, __('bot_messages.application_create_start'));
-                $this->updateConversationState($user, ConversationStateEnum::APPLICATION_CREATE);
+                $this->sendApplicationList($user);
                 break;
             case '2':
-                $this->sendApplicationList($user);
+                $this->sendMessage($user->phone, __('bot_messages.application_create_start'));
+                $this->updateConversationState($user, ConversationStateEnum::APPLICATION_CREATE);
                 break;
             case '3':
                 $this->sendMessage($user->phone, __('bot_messages.application_delete_start'));
                 $this->updateConversationState($user, ConversationStateEnum::APPLICATION_DELETE);
+                break;
+            case '4':
+                $this->sendMessage($user->phone, __('bot_messages.application_end_conversation'));
+                $this->updateConversationState($user, ConversationStateEnum::IDLE);
                 break;
             default:
                 $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
