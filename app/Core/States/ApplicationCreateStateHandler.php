@@ -63,6 +63,10 @@ class ApplicationCreateStateHandler extends BaseStateHandler implements StateHan
             $value = $message;
         }
 
+        if ($currentStep['field'] === 'job_salary') {
+            $value = format_currency($value);
+        }
+
         $validator = Validator::make([$currentStep['field'] => $value], [$currentStep['field'] => $currentStep['rules']], $currentStep['messages'] ?? []);
 
         if ($validator->fails()) {

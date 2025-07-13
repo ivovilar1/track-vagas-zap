@@ -78,6 +78,11 @@ class ApplicationUpdateStateHandler extends BaseStateHandler implements StateHan
 
         $fieldToEdit = $context['field_to_edit'];
         $value = Str::lower($message) === 'pular' ? null : $message;
+        
+        if ($fieldToEdit === 'job_salary') {
+            $value = format_currency($value);
+        }
+
         $rules = [
             'company_name' => 'nullable|string|max:255',
             'job_title' => 'required|string|max:255',
