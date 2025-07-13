@@ -14,6 +14,9 @@ class StateHandlerFactory
             ConversationStateEnum::IDLE => app(States\IdleStateHandler::class),
             ConversationStateEnum::MAIN_MENU => app(States\MainMenuStateHandler::class),
             ConversationStateEnum::APPLICATION_CREATE => app(States\ApplicationCreateStateHandler::class),
+            ConversationStateEnum::APPLICATION_LIST => app(States\ApplicationListStateHandler::class),
+            ConversationStateEnum::APPLICATION_UPDATE => app(States\ApplicationUpdateStateHandler::class),
+            ConversationStateEnum::APPLICATION_DELETE => app(States\ApplicationDeleteStateHandler::class),
         };
     }
 }
