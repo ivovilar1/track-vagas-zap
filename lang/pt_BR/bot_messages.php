@@ -59,5 +59,5 @@ return [
         'job_link' => 'Link da Vaga',
     ],
     'application_handle_cancel' => 'Operação cancelada. Voltando ao menu...',
-    'application_end_conversation' => 'Obrigado por utilizar o bot. Até mais!',
+    'application_end_conversation' => 'Obrigado por utilizar o TrackVagaZap. Até mais!',
 ];
