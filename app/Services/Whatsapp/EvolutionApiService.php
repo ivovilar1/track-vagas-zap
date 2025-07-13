@@ -2,10 +2,10 @@
 
 namespace App\Services\Whatsapp;
 
+use Exception;
 use Illuminate\Container\Attributes\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 class EvolutionApiService
 {
@@ -25,21 +25,21 @@ class EvolutionApiService
         try {
             $response = Http::withHeaders([
                 'apikey' => $this->instanceToken,
-            ])->post($this->serverUrl . '/message/sendText/' . $this->instanceName, [
+            ])->post($this->serverUrl.'/message/sendText/'.$this->instanceName, [
                 'number' => $to,
                 'text' => $message,
             ]);
-            
-            if (!$response->successful()) {
+
+            if (! $response->successful()) {
                 Log::error('Failed to send WhatsApp message', [
                     'phone' => $to,
-                    'response' => $response->body()
+                    'response' => $response->body(),
                 ]);
             }
         } catch (Exception $e) {
             Log::error('WhatsApp API error', [
                 'phone' => $to,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }

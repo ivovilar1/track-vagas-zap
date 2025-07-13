@@ -7,10 +7,10 @@ use App\Enums\ConversationStateEnum;
 use App\Models\Apliccation;
 use App\Models\User;
 use App\Services\Whatsapp\EvolutionApiService;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
-class ApplicationCreateStateHandler implements StateHandlerInterface
+class ApplicationCreateStateHandler extends BaseStateHandler implements StateHandlerInterface
 {
     public function __construct(
         private readonly EvolutionApiService $evolutionApiService,
@@ -26,11 +26,13 @@ class ApplicationCreateStateHandler implements StateHandlerInterface
             if ($validator->fails()) {
                 $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
                 $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_start'));
+
                 return;
             }
             $context['company_name'] = $value;
             $user->update(['context' => $context]);
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_title'));
+
             return;
         }
 
@@ -41,11 +43,13 @@ class ApplicationCreateStateHandler implements StateHandlerInterface
             if ($validator->fails()) {
                 $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
                 $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_title'));
+
                 return;
             }
             $context['job_title'] = $value;
             $user->update(['context' => $context]);
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_description'));
+
             return;
         }
 
@@ -54,11 +58,13 @@ class ApplicationCreateStateHandler implements StateHandlerInterface
             if ($validator->fails()) {
                 $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
                 $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_description'));
+
                 return;
             }
             $context['job_description'] = $value;
             $user->update(['context' => $context]);
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_salary'));
+
             return;
         }
 
@@ -67,11 +73,13 @@ class ApplicationCreateStateHandler implements StateHandlerInterface
             if ($validator->fails()) {
                 $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
                 $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_salary'));
+
                 return;
             }
             $context['job_salary'] = $value;
             $user->update(['context' => $context]);
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_link'));
+
             return;
         }
 
@@ -80,6 +88,7 @@ class ApplicationCreateStateHandler implements StateHandlerInterface
             if ($validator->fails()) {
                 $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
                 $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_link'));
+
                 return;
             }
             $context['job_link'] = $value;
@@ -98,12 +107,8 @@ class ApplicationCreateStateHandler implements StateHandlerInterface
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
+
             return;
         }
-    }
-
-    private function updateConversationState(User $user, ConversationStateEnum $state): void
-    {
-        $user->update(['conversation_state' => $state]);
     }
 }

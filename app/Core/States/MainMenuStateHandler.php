@@ -9,7 +9,7 @@ use App\Services\Whatsapp\EvolutionApiService;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
-class MainMenuStateHandler implements StateHandlerInterface
+class MainMenuStateHandler extends BaseStateHandler implements StateHandlerInterface
 {
     public function __construct(
         private readonly EvolutionApiService $evolutionApiService,
@@ -19,16 +19,17 @@ class MainMenuStateHandler implements StateHandlerInterface
     {
         $messageLower = Str::lower($message);
 
-        if (in_array($messageLower, ['cancelar','menu'])) {
+        if (in_array($messageLower, ['cancelar', 'menu'])) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_handle_cancel'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $user->update([
                 'conversation_state' => ConversationStateEnum::MAIN_MENU,
-                'context' => []
+                'context' => [],
             ]);
+
             return;
         }
-        
+
         $option = trim($message);
 
         switch ($option) {
@@ -41,8 +42,8 @@ class MainMenuStateHandler implements StateHandlerInterface
                 break;
             case '3':
                 $this->sendApplicationList(
-                    $user, 
-                    ConversationStateEnum::APPLICATION_DELETE, 
+                    $user,
+                    ConversationStateEnum::APPLICATION_DELETE,
                     'bot_messages.application_list_delete_prompt'
                 );
                 break;
@@ -62,14 +63,14 @@ class MainMenuStateHandler implements StateHandlerInterface
         User $user,
         ConversationStateEnum $nextState = ConversationStateEnum::APPLICATION_LIST,
         string $promptMessageKey = 'bot_messages.application_list_prompt'
-    ): void
-    {
+    ): void {
         $applications = $user->applications()->latest()->get();
 
         if ($applications->isEmpty()) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_list_empty'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+
             return;
         }
 
@@ -81,7 +82,7 @@ class MainMenuStateHandler implements StateHandlerInterface
                 'job_title' => $application->job_title,
                 'company_name' => $application->company_name ?? 'N/A',
                 'job_description' => $application->job_description ?? 'N/A',
-                'job_salary' => $application->job_salary ? 'R$ ' . number_format($application->job_salary, 2, ',', '.') : 'N/A',
+                'job_salary' => $application->job_salary ? 'R$ '.number_format($application->job_salary, 2, ',', '.') : 'N/A',
                 'job_link' => $application->job_link ?? 'N/A',
                 'application_date' => Carbon::parse($application->application_date)->format('d/m/Y'),
             ];
@@ -96,10 +97,5 @@ class MainMenuStateHandler implements StateHandlerInterface
 
         $user->update(['context' => ['application_ids' => $applicationIds]]);
         $this->updateConversationState($user, $nextState);
-    }
-
-    private function updateConversationState(User $user, ConversationStateEnum $state): void
-    {
-        $user->update(['conversation_state' => $state]);
     }
 }

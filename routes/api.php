@@ -3,9 +3,6 @@
 use App\Http\Controllers\WhatsappMessage\Received;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Log;
-
-
 
 Route::post('webhook/evolution', Received::class)->name('webhook.evolution')->middleware('evolution.webhook');
 

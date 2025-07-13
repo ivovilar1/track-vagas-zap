@@ -4,11 +4,9 @@ namespace App\Policies;
 
 use App\Models\Apliccation;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ApliccationPolicy
 {
-  
     /**
      * Determine whether the user can view the model.
      */
@@ -16,6 +14,7 @@ class ApliccationPolicy
     {
         return $user->id === $apliccation->user_id;
     }
+
     /**
      * Determine whether the user can update the model.
      */

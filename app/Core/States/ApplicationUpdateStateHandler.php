@@ -7,10 +7,10 @@ use App\Enums\ConversationStateEnum;
 use App\Models\Apliccation;
 use App\Models\User;
 use App\Services\Whatsapp\EvolutionApiService;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
-class ApplicationUpdateStateHandler implements StateHandlerInterface
+class ApplicationUpdateStateHandler extends BaseStateHandler implements StateHandlerInterface
 {
     public function __construct(
         private readonly EvolutionApiService $evolutionApiService,
@@ -21,23 +21,25 @@ class ApplicationUpdateStateHandler implements StateHandlerInterface
         $context = $user->context ?? [];
         $applicationId = $context['application_id_to_update'] ?? null;
 
-        if (!$applicationId) {
+        if (! $applicationId) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.error_try_again'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+
             return;
         }
-        
+
         $application = Apliccation::query()->find($applicationId);
-        if (!$application) {
+        if (! $application) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
+
             return;
         }
 
-        if (!isset($context['field_to_edit'])) {
+        if (! isset($context['field_to_edit'])) {
             $option = trim($message);
             $fieldMap = [
                 '1' => 'company_name',
@@ -51,23 +53,26 @@ class ApplicationUpdateStateHandler implements StateHandlerInterface
                 $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
                 $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
                 $user->update(['context' => null]);
+
                 return;
             }
-            
-            if (!isset($fieldMap[$option])) {
+
+            if (! isset($fieldMap[$option])) {
                 $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.invalid_option'));
                 $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_update_menu', [
                     'job_title' => $application->job_title,
-                    'company_name' => $application->company_name ?? 'N/A'
+                    'company_name' => $application->company_name ?? 'N/A',
                 ]));
+
                 return;
             }
-            
+
             $fieldToEdit = $fieldMap[$option];
             $context['field_to_edit'] = $fieldToEdit;
             $user->update(['context' => $context]);
 
-            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.' . $fieldToEdit)]));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.'.$fieldToEdit)]));
+
             return;
         }
 
@@ -85,7 +90,8 @@ class ApplicationUpdateStateHandler implements StateHandlerInterface
 
         if ($validator->fails()) {
             $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
-            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.' . $fieldToEdit)]));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.'.$fieldToEdit)]));
+
             return;
         }
 
@@ -95,9 +101,5 @@ class ApplicationUpdateStateHandler implements StateHandlerInterface
         $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
         $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
         $user->update(['context' => null]);
-    }
-    private function updateConversationState(User $user, ConversationStateEnum $state): void
-    {
-        $user->update(['conversation_state' => $state]);
     }
 }

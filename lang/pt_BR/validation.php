@@ -19,4 +19,4 @@ return [
         'job_salary' => 'salário',
         'job_link' => 'link da vaga',
     ],
-]; 
+];

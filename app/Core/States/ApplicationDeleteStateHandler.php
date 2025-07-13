@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Services\Whatsapp\EvolutionApiService;
 use Illuminate\Support\Str;
 
-class ApplicationDeleteStateHandler implements StateHandlerInterface
+class ApplicationDeleteStateHandler extends BaseStateHandler implements StateHandlerInterface
 {
     public function __construct(
         private readonly EvolutionApiService $evolutionApiService,
@@ -24,6 +24,7 @@ class ApplicationDeleteStateHandler implements StateHandlerInterface
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
+
             return;
         }
 
@@ -44,31 +45,35 @@ class ApplicationDeleteStateHandler implements StateHandlerInterface
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
+
             return;
         }
 
-        if (!isset($context['application_ids'])) {
+        if (! isset($context['application_ids'])) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.error_try_again'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
+
             return;
         }
 
         if (! is_numeric($option) || ! isset($context['application_ids'][$option])) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.invalid_option'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_list_delete_prompt'));
+
             return;
         }
 
         $applicationId = $context['application_ids'][$option];
         $application = Apliccation::find($applicationId);
 
-        if (!$application) {
+        if (! $application) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
+
             return;
         }
 
@@ -77,12 +82,7 @@ class ApplicationDeleteStateHandler implements StateHandlerInterface
 
         $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_delete_confirm', [
             'job_title' => $application->job_title,
-            'company_name' => $application->company_name ?? 'N/A'
+            'company_name' => $application->company_name ?? 'N/A',
         ]));
-    }
-
-    private function updateConversationState(User $user, ConversationStateEnum $state): void
-    {
-        $user->update(['conversation_state' => $state]);
     }
 }
