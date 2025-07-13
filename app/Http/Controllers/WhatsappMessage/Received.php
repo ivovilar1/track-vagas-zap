@@ -61,7 +61,7 @@ class Received extends Controller
     {
         $messageLower = strtolower(trim($message));
 
-        if (in_array($messageLower, ['cancelar', 'sair', 'menu'])) {
+        if (in_array($messageLower, ['cancelar','menu'])) {
             $this->sendMessage($user->phone, __('bot_messages.application_handle_cancel'));
             $this->sendMessage($user->phone, __('bot_messages.main_menu'));
             $user->update([
@@ -100,8 +100,11 @@ class Received extends Controller
                 $this->updateConversationState($user, ConversationStateEnum::APPLICATION_CREATE);
                 break;
             case '3':
-                $this->sendMessage($user->phone, __('bot_messages.application_delete_start'));
-                $this->updateConversationState($user, ConversationStateEnum::APPLICATION_DELETE);
+                $this->sendApplicationList(
+                    $user, 
+                    ConversationStateEnum::APPLICATION_DELETE, 
+                    'bot_messages.application_list_delete_prompt'
+                );
                 break;
             case '4':
                 $this->sendMessage($user->phone, __('bot_messages.application_end_conversation'));
@@ -163,7 +166,11 @@ class Received extends Controller
         $this->updateConversationState($user, ConversationStateEnum::APPLICATION_UPDATE);
     }
 
-    private function sendApplicationList(User $user): void
+    private function sendApplicationList(
+        User $user,
+        ConversationStateEnum $nextState = ConversationStateEnum::APPLICATION_LIST,
+        string $promptMessageKey = 'bot_messages.application_list_prompt'
+    ): void
     {
         $applications = $user->applications()->latest()->get();
 
@@ -193,10 +200,10 @@ class Received extends Controller
 
         $this->sendMessage($user->phone, __('bot_messages.application_list_header'));
         $this->sendMessage($user->phone, implode("\n\n", $applicationListFormatted));
-        $this->sendMessage($user->phone, __('bot_messages.application_list_prompt'));
+        $this->sendMessage($user->phone, __($promptMessageKey));
 
         $user->update(['context' => ['application_ids' => $applicationIds]]);
-        $this->updateConversationState($user, ConversationStateEnum::APPLICATION_LIST);
+        $this->updateConversationState($user, $nextState);
     }
 
     private function handleApplicationCreateState(User $user, string $message): void
@@ -368,7 +375,68 @@ class Received extends Controller
 
     private function handleApplicationDeleteState(User $user, string $message): void
     {
-        $this->sendMessage($user->phone, __('bot_messages.application_delete'));
+        $context = $user->context ?? [];
+        $option = trim($message);
+
+        if (Str::lower($option) === 'cancelar') {
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            $user->update(['context' => null]);
+            return;
+        }
+
+        if (isset($context['application_id_to_delete'])) {
+            $applicationId = $context['application_id_to_delete'];
+            if (Str::lower($option) === 'sim') {
+                $application = Apliccation::find($applicationId);
+                if ($application) {
+                    $application->delete();
+                    $this->sendMessage($user->phone, __('bot_messages.application_deleted_success'));
+                } else {
+                    $this->sendMessage($user->phone, __('bot_messages.application_not_found'));
+                }
+            } else {
+                $this->sendMessage($user->phone, __('bot_messages.application_delete_cancelled'));
+            }
+
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            $user->update(['context' => null]);
+            return;
+        }
+
+        if (!isset($context['application_ids'])) {
+            $this->sendMessage($user->phone, __('bot_messages.error_try_again'));
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            $user->update(['context' => null]);
+            return;
+        }
+
+        if (! is_numeric($option) || ! isset($context['application_ids'][$option])) {
+            $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
+            $this->sendMessage($user->phone, __('bot_messages.application_list_delete_prompt'));
+            return;
+        }
+
+        $applicationId = $context['application_ids'][$option];
+        $application = Apliccation::find($applicationId);
+
+        if (!$application) {
+            $this->sendMessage($user->phone, __('bot_messages.application_not_found'));
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
+            $user->update(['context' => null]);
+            return;
+        }
+
+        $context['application_id_to_delete'] = $applicationId;
+        $user->update(['context' => $context]);
+
+        $this->sendMessage($user->phone, __('bot_messages.application_delete_confirm', [
+            'job_title' => $application->job_title,
+            'company_name' => $application->company_name ?? 'N/A'
+        ]));
     }
 
     private function updateConversationState(User $user, ConversationStateEnum $state): void
