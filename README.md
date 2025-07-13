@@ -10,7 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/PHP-8.2%2B-blueviolet" alt="PHP 8.2+">
-  <img src="https://img.shields.io/badge/Laravel-11.x-FF2D20?style=flat-square&logo=laravel" alt="Laravel 11.x">
+  <img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=flat-square&logo=laravel" alt="Laravel 12.x">
   <img src="https://img.shields.io/badge/Status-Funcional-brightgreen" alt="Status: Funcional">
 </p>
 
@@ -30,7 +30,7 @@ O Track Vagas Zap permite que você gerencie suas vagas diretamente pelo WhatsAp
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **[Laravel 11](https://laravel.com):** Framework PHP para a estrutura do backend.
+- **[Laravel 12](https://laravel.com):** Framework PHP para a estrutura do backend.
 - **[Evolution API](https://evolution-api.com/):** API não-oficial para a integração com o WhatsApp.
 - **PHP 8.2:** Linguagem de programação base.
 - **MySQL/PostgreSQL/SQLite:** Banco de dados para persistir as informações.
