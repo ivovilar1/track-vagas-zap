@@ -26,19 +26,23 @@ return [
     'application_list' => "Aqui estão suas candidaturas:",
     'application_list_header' => "Aqui estão suas candidaturas:",
     'application_list_prompt' => "Digite o número da candidatura que deseja editar ou 'cancelar' para voltar ao menu principal.",
+    'application_list_delete_prompt' => 'Digite o número da candidatura que deseja excluir ou "cancelar" para voltar.',
     'application_create_start' => 'Vamos começar. Qual o nome da empresa? (digite "pular" para ignorar)',
     'application_create_job_title' => 'Qual o título da vaga? (obrigatório)',
     'application_create_job_title_required' => 'O título da vaga é obrigatório.',
     'application_create_job_description' => 'Qual a descrição da vaga? (digite "pular" para ignorar)',
     'application_create_job_salary' => 'Qual o salário? (digite "pular" para ignorar)',
-    'application_create_job_link' => 'Qual o link da vaga? (digite "pular" para ignorar)',
-    'application_create_success' => 'Candidatura criada com sucesso!',
+    'application_create_job_link' => 'Qual o link da vaga? (pode pular)',
+    'application_create_success' => 'Candidatura cadastrada com sucesso!',
     'application_update_start' => 'Qual o ID da candidatura que você deseja atualizar?',
     'application_update' => 'Candidatura atualizada com sucesso!',
-    'application_delete_start' => 'Qual o ID da candidatura que você deseja remover?',
-    'invalid_option' => 'Opção inválida. Por favor, digite o número da opção desejada.',
-    'error_try_again' => 'Ocorreu um erro, por favor tente novamente.',
-    'application_update_menu' => "Certo! Você está editando a vaga para *:job_title* em *:company_name*.\n\nO que você gostaria de alterar?\n\n" .
+    'application_delete_start' => 'Vamos excluir uma candidatura.',
+    'application_delete_confirm' => "Você tem certeza que deseja excluir a candidatura para a vaga *:job_title* na empresa *:company_name*? Responda com 'sim' para confirmar.",
+    'application_delete_cancelled' => 'Exclusão cancelada.',
+    'application_deleted_success' => 'Candidatura excluída com sucesso!',
+    'invalid_option' => 'Opção inválida.',
+    'error_try_again' => 'Ocorreu um erro. Por favor, tente novamente.',
+    'application_update_menu' => "Você selecionou a vaga *:job_title* na empresa *:company_name*.\n\nO que você gostaria de atualizar?\n\n" .
         "➡️ *1. Nome da Empresa*\n" .
         "➡️ *2. Título da Vaga*\n" .
         "➡️ *3. Descrição da Vaga*\n" .
@@ -46,14 +50,14 @@ return [
         "➡️ *5. Link da Vaga*\n" .
         "➡️ *6. Cancelar*\n\n" .
         "Por favor, digite o *número* da opção desejada.",
-    'application_update_prompt_new_value' => "Qual o novo valor para * :field*? (digite 'pular' para não definir um valor)",
+    'application_update_prompt_new_value' => 'Por favor, digite o novo valor para *:field* ou "pular" para manter o valor atual.',
     'application_fields' => [
         'company_name' => 'Nome da Empresa',
         'job_title' => 'Título da Vaga',
         'job_description' => 'Descrição da Vaga',
         'job_salary' => 'Salário',
         'job_link' => 'Link da Vaga',
+    ],
     'application_handle_cancel' => 'Operação cancelada. Voltando ao menu...',
-    'application_end_conversation' => 'Obrigado por usar o TrackVagaZap! Até a próxima!',
-    ]
+    'application_end_conversation' => 'Obrigado por utilizar o bot. Até mais!',
 ];

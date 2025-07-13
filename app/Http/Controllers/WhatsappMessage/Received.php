@@ -343,7 +343,7 @@ class Received extends Controller
             $context['field_to_edit'] = $fieldToEdit;
             $user->update(['context' => $context]);
 
-            $this->sendMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __("bot_messages.application_fields.$fieldToEdit")]));
+            $this->sendMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.' . $fieldToEdit)]));
             return;
         }
 
@@ -361,7 +361,7 @@ class Received extends Controller
 
         if ($validator->fails()) {
             $this->sendMessage($user->phone, $validator->errors()->first());
-            $this->sendMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __("bot_messages.application_fields.$fieldToEdit")]));
+            $this->sendMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.' . $fieldToEdit)]));
             return;
         }
 
