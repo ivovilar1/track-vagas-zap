@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Services\Whatsapp\EvolutionApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class Received extends Controller
 {
@@ -19,18 +21,42 @@ class Received extends Controller
 
     public function __invoke(Request $request): void
     {
-        $data = $request->all();
-        $from = strstr($data['data']['key']['remoteJid'], '@', true);
-        $message = $data['data']['message']['conversation'] ?? $data['data']['message']['extendedTextMessage']['text'];
+        $validator = Validator::make($request->all(), [
+            'data' => 'required|array',
+            'data.key' => 'required|array',
+            'data.key.remoteJid' => 'required|string',
+            'data.pushName' => 'required|string',
+            'data.message' => 'required|array',
+        ]);
 
-        $user = User::query()->where('phone', $from)->first();
-        if (! $user) {
-            $user = User::create([
-                'phone' => $from,
+        if ($validator->fails()) {
+            Log::error('Invalid webhook payload', [
+                'errors' => $validator->errors(),
+                'payload' => $request->all(),
+            ]);
+            return;
+        }
+        
+        $data = $validator->validated();
+        $message = $data['data']['message']['conversation'] 
+            ?? $data['data']['message']['extendedTextMessage']['text'] 
+            ?? null;
+
+        if (is_null($message)) {
+            Log::error('Message not found in webhook payload', ['payload' => $request->all()]);
+            return;
+        }
+
+        $from = strstr($data['data']['key']['remoteJid'], '@', true);
+        
+        $user = User::query()->firstOrCreate(
+            ['phone' => $from],
+            [
                 'name' => $data['data']['pushName'],
                 'conversation_state' => ConversationStateEnum::IDLE,
-            ]);
-        }
+            ]
+        );
+        
         $this->handleMessage($user, $message);
     }
 
