@@ -59,6 +59,17 @@ class Received extends Controller
 
     private function handleMessage(User $user, string $message): void
     {
+        $messageLower = strtolower(trim($message));
+
+        if (in_array($messageLower, ['cancelar', 'sair', 'menu'])) {
+            $this->sendMessage($user->phone, 'Operação cancelada. Voltando ao menu...');
+            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $user->update([
+                'conversation_state' => ConversationStateEnum::MAIN_MENU,
+                'context' => []
+            ]);
+            return;
+        }
         match ($user->conversation_state) {
             ConversationStateEnum::IDLE => $this->handleIdleState($user, $message),
             ConversationStateEnum::MAIN_MENU => $this->handleMainMenuState($user, $message),
