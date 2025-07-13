@@ -32,7 +32,7 @@ return [
     'application_create_job_title_required' => 'O título da vaga é obrigatório.',
     'application_create_job_description' => 'Qual a descrição da vaga? (digite "pular" para ignorar)',
     'application_create_job_salary' => 'Qual o salário? (digite "pular" para ignorar)',
-    'application_create_job_link' => 'Qual o link da vaga? (pode pular)',
+    'application_create_job_link' => 'Qual o link da vaga? (digite "pular" para ignorar)',
     'application_create_success' => 'Candidatura cadastrada com sucesso!',
     'application_update_start' => 'Qual o ID da candidatura que você deseja atualizar?',
     'application_update' => 'Candidatura atualizada com sucesso!',
