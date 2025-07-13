@@ -6,6 +6,7 @@ use App\Enums\ConversationStateEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Apliccation;
 use App\Models\User;
+use App\Services\Whatsapp\EvolutionApiService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -16,6 +17,10 @@ use Illuminate\Support\Str;
 
 class Received extends Controller
 {
+    public function __construct(
+        private readonly EvolutionApiService $evolutionApiService,
+    ) {}
+
     public function __invoke(Request $request): void
     {
         $data = $request->all();
@@ -32,38 +37,13 @@ class Received extends Controller
         }
         $this->handleMessage($user, $message);
     }
-
-    private function sendMessage(string $from, string $message): void
-    {
-        try {
-            $response = Http::withHeaders([
-                'apikey' => config('services.evolution.instance_token'),
-            ])->post(config('services.evolution.server_url') . '/message/sendText/' . config('services.evolution.instance_name'), [
-                'number' => $from,
-                'text' => $message,
-            ]);
-            
-            if (!$response->successful()) {
-                Log::error('Failed to send WhatsApp message', [
-                    'phone' => $from,
-                    'response' => $response->body()
-                ]);
-            }
-        } catch (Exception $e) {
-            Log::error('WhatsApp API error', [
-                'phone' => $from,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
     private function handleMessage(User $user, string $message): void
     {
         $messageLower = strtolower(trim($message));
 
         if (in_array($messageLower, ['cancelar','menu'])) {
-            $this->sendMessage($user->phone, __('bot_messages.application_handle_cancel'));
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_handle_cancel'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $user->update([
                 'conversation_state' => ConversationStateEnum::MAIN_MENU,
                 'context' => []
@@ -82,8 +62,8 @@ class Received extends Controller
 
     private function handleIdleState(User $user, string $message): void
     {
-        $this->sendMessage($user->phone, __('bot_messages.welcome_new_user', ['name' => $user->name]));
-        $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+        $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.welcome_new_user', ['name' => $user->name]));
+        $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
         $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
     }
 
@@ -96,7 +76,7 @@ class Received extends Controller
                 $this->sendApplicationList($user);
                 break;
             case '2':
-                $this->sendMessage($user->phone, __('bot_messages.application_create_start'));
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_start'));
                 $this->updateConversationState($user, ConversationStateEnum::APPLICATION_CREATE);
                 break;
             case '3':
@@ -107,12 +87,12 @@ class Received extends Controller
                 );
                 break;
             case '4':
-                $this->sendMessage($user->phone, __('bot_messages.application_end_conversation'));
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_end_conversation'));
                 $this->updateConversationState($user, ConversationStateEnum::IDLE);
                 break;
             default:
-                $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
-                $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.invalid_option'));
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
                 $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
                 break;
         }
@@ -124,23 +104,23 @@ class Received extends Controller
         $option = trim($message);
 
         if (Str::lower($option) === 'cancelar') {
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
             return;
         }
 
         if (!isset($context['application_ids'])) {
-            $this->sendMessage($user->phone, __('bot_messages.error_try_again'));
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.error_try_again'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
             return;
         }
 
         if (! is_numeric($option) || ! isset($context['application_ids'][$option])) {
-            $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
-            $this->sendMessage($user->phone, __('bot_messages.application_list_prompt'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.invalid_option'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_list_prompt'));
             return;
         }
 
@@ -148,8 +128,8 @@ class Received extends Controller
         $application = Apliccation::find($applicationId);
 
         if (!$application) {
-            $this->sendMessage($user->phone, __('bot_messages.application_not_found'));
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
             return;
@@ -159,7 +139,7 @@ class Received extends Controller
             'context' => ['application_id_to_update' => $applicationId]
         ]);
 
-        $this->sendMessage($user->phone, __('bot_messages.application_update_menu', [
+        $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_update_menu', [
             'job_title' => $application->job_title,
             'company_name' => $application->company_name ?? 'N/A'
         ]));
@@ -175,8 +155,8 @@ class Received extends Controller
         $applications = $user->applications()->latest()->get();
 
         if ($applications->isEmpty()) {
-            $this->sendMessage($user->phone, __('bot_messages.application_list_empty'));
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_list_empty'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             return;
         }
@@ -198,9 +178,9 @@ class Received extends Controller
             $applicationIds[$index + 1] = $application->id;
         }
 
-        $this->sendMessage($user->phone, __('bot_messages.application_list_header'));
-        $this->sendMessage($user->phone, implode("\n\n", $applicationListFormatted));
-        $this->sendMessage($user->phone, __($promptMessageKey));
+        $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_list_header'));
+        $this->evolutionApiService->sendTextMessage($user->phone, implode("\n\n", $applicationListFormatted));
+        $this->evolutionApiService->sendTextMessage($user->phone, __($promptMessageKey));
 
         $user->update(['context' => ['application_ids' => $applicationIds]]);
         $this->updateConversationState($user, $nextState);
@@ -214,13 +194,13 @@ class Received extends Controller
         if (! array_key_exists('company_name', $context)) {
             $validator = Validator::make(['company_name' => $value], ['company_name' => 'nullable|string|max:255']);
             if ($validator->fails()) {
-                $this->sendMessage($user->phone, $validator->errors()->first());
-                $this->sendMessage($user->phone, __('bot_messages.application_create_start'));
+                $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_start'));
                 return;
             }
             $context['company_name'] = $value;
             $user->update(['context' => $context]);
-            $this->sendMessage($user->phone, __('bot_messages.application_create_job_title'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_title'));
             return;
         }
 
@@ -229,47 +209,47 @@ class Received extends Controller
                 'required' => __('bot_messages.application_create_job_title_required'),
             ]);
             if ($validator->fails()) {
-                $this->sendMessage($user->phone, $validator->errors()->first());
-                $this->sendMessage($user->phone, __('bot_messages.application_create_job_title'));
+                $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_title'));
                 return;
             }
             $context['job_title'] = $value;
             $user->update(['context' => $context]);
-            $this->sendMessage($user->phone, __('bot_messages.application_create_job_description'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_description'));
             return;
         }
 
         if (! array_key_exists('job_description', $context)) {
             $validator = Validator::make(['job_description' => $value], ['job_description' => 'nullable|string|max:255']);
             if ($validator->fails()) {
-                $this->sendMessage($user->phone, $validator->errors()->first());
-                $this->sendMessage($user->phone, __('bot_messages.application_create_job_description'));
+                $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_description'));
                 return;
             }
             $context['job_description'] = $value;
             $user->update(['context' => $context]);
-            $this->sendMessage($user->phone, __('bot_messages.application_create_job_salary'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_salary'));
             return;
         }
 
         if (! array_key_exists('job_salary', $context)) {
             $validator = Validator::make(['job_salary' => $value], ['job_salary' => 'nullable|numeric|min:0']);
             if ($validator->fails()) {
-                $this->sendMessage($user->phone, $validator->errors()->first());
-                $this->sendMessage($user->phone, __('bot_messages.application_create_job_salary'));
+                $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_salary'));
                 return;
             }
             $context['job_salary'] = $value;
             $user->update(['context' => $context]);
-            $this->sendMessage($user->phone, __('bot_messages.application_create_job_link'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_link'));
             return;
         }
 
         if (! array_key_exists('job_link', $context)) {
             $validator = Validator::make(['job_link' => $value], ['job_link' => 'nullable|url|max:255']);
             if ($validator->fails()) {
-                $this->sendMessage($user->phone, $validator->errors()->first());
-                $this->sendMessage($user->phone, __('bot_messages.application_create_job_link'));
+                $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_job_link'));
                 return;
             }
             $context['job_link'] = $value;
@@ -284,8 +264,8 @@ class Received extends Controller
                 'application_date' => now()->format('Y-m-d'),
             ]);
 
-            $this->sendMessage($user->phone, __('bot_messages.application_create_success'));
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_create_success'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
             return;
@@ -298,16 +278,16 @@ class Received extends Controller
         $applicationId = $context['application_id_to_update'] ?? null;
 
         if (!$applicationId) {
-            $this->sendMessage($user->phone, __('bot_messages.error_try_again'));
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.error_try_again'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             return;
         }
         
         $application = Apliccation::query()->find($applicationId);
         if (!$application) {
-            $this->sendMessage($user->phone, __('bot_messages.application_not_found'));
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
             return;
@@ -324,15 +304,15 @@ class Received extends Controller
             ];
 
             if ($option === '6' || Str::lower($message) === 'cancelar') {
-                $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
                 $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
                 $user->update(['context' => null]);
                 return;
             }
             
             if (!isset($fieldMap[$option])) {
-                $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
-                $this->sendMessage($user->phone, __('bot_messages.application_update_menu', [
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.invalid_option'));
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_update_menu', [
                     'job_title' => $application->job_title,
                     'company_name' => $application->company_name ?? 'N/A'
                 ]));
@@ -343,7 +323,7 @@ class Received extends Controller
             $context['field_to_edit'] = $fieldToEdit;
             $user->update(['context' => $context]);
 
-            $this->sendMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.' . $fieldToEdit)]));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.' . $fieldToEdit)]));
             return;
         }
 
@@ -360,15 +340,15 @@ class Received extends Controller
         $validator = Validator::make([$fieldToEdit => $value], [$fieldToEdit => $rules[$fieldToEdit]]);
 
         if ($validator->fails()) {
-            $this->sendMessage($user->phone, $validator->errors()->first());
-            $this->sendMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.' . $fieldToEdit)]));
+            $this->evolutionApiService->sendTextMessage($user->phone, $validator->errors()->first());
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_update_prompt_new_value', ['field' => __('bot_messages.application_fields.' . $fieldToEdit)]));
             return;
         }
 
         $application->update([$fieldToEdit => $value]);
 
-        $this->sendMessage($user->phone, __('bot_messages.application_updated_success'));
-        $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+        $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_updated_success'));
+        $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
         $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
         $user->update(['context' => null]);
     }
@@ -379,7 +359,7 @@ class Received extends Controller
         $option = trim($message);
 
         if (Str::lower($option) === 'cancelar') {
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
             return;
@@ -391,31 +371,31 @@ class Received extends Controller
                 $application = Apliccation::find($applicationId);
                 if ($application) {
                     $application->delete();
-                    $this->sendMessage($user->phone, __('bot_messages.application_deleted_success'));
+                    $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_deleted_success'));
                 } else {
-                    $this->sendMessage($user->phone, __('bot_messages.application_not_found'));
+                    $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));
                 }
             } else {
-                $this->sendMessage($user->phone, __('bot_messages.application_delete_cancelled'));
+                $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_delete_cancelled'));
             }
 
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
             return;
         }
 
         if (!isset($context['application_ids'])) {
-            $this->sendMessage($user->phone, __('bot_messages.error_try_again'));
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.error_try_again'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
             return;
         }
 
         if (! is_numeric($option) || ! isset($context['application_ids'][$option])) {
-            $this->sendMessage($user->phone, __('bot_messages.invalid_option'));
-            $this->sendMessage($user->phone, __('bot_messages.application_list_delete_prompt'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.invalid_option'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_list_delete_prompt'));
             return;
         }
 
@@ -423,8 +403,8 @@ class Received extends Controller
         $application = Apliccation::find($applicationId);
 
         if (!$application) {
-            $this->sendMessage($user->phone, __('bot_messages.application_not_found'));
-            $this->sendMessage($user->phone, __('bot_messages.main_menu'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));
+            $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);
             $user->update(['context' => null]);
             return;
@@ -433,7 +413,7 @@ class Received extends Controller
         $context['application_id_to_delete'] = $applicationId;
         $user->update(['context' => $context]);
 
-        $this->sendMessage($user->phone, __('bot_messages.application_delete_confirm', [
+        $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_delete_confirm', [
             'job_title' => $application->job_title,
             'company_name' => $application->company_name ?? 'N/A'
         ]));
