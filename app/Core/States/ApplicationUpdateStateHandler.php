@@ -30,7 +30,7 @@ class ApplicationUpdateStateHandler extends BaseStateHandler implements StateHan
         }
 
         $application = Application::query()->find($applicationId);
-        if (! $application) {
+        if (! $application || $user->cannot('update', $application)) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);

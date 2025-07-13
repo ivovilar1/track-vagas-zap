@@ -47,7 +47,7 @@ class ApplicationListStateHandler extends BaseStateHandler implements StateHandl
         $applicationId = $context['application_ids'][$option];
         $application = Application::query()->find($applicationId);
 
-        if (! $application) {
+        if (! $application || $user->cannot('view', $application)) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));
             $this->updateConversationState($user, ConversationStateEnum::MAIN_MENU);

@@ -32,7 +32,7 @@ class ApplicationDeleteStateHandler extends BaseStateHandler implements StateHan
             $applicationId = $context['application_id_to_delete'];
             if (Str::lower($option) === 'sim') {
                 $application = Application::find($applicationId);
-                if ($application) {
+                if ($application && $user->can('delete', $application)) {
                     $application->delete();
                     $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_deleted_success'));
                 } else {
