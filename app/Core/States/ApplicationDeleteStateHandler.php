@@ -4,7 +4,7 @@ namespace App\Core\States;
 
 use App\Core\States\Interface\StateHandlerInterface;
 use App\Enums\ConversationStateEnum;
-use App\Models\Apliccation;
+use App\Models\Application;
 use App\Models\User;
 use App\Services\Whatsapp\EvolutionApiService;
 use Illuminate\Support\Str;
@@ -31,7 +31,7 @@ class ApplicationDeleteStateHandler extends BaseStateHandler implements StateHan
         if (isset($context['application_id_to_delete'])) {
             $applicationId = $context['application_id_to_delete'];
             if (Str::lower($option) === 'sim') {
-                $application = Apliccation::find($applicationId);
+                $application = Application::find($applicationId);
                 if ($application) {
                     $application->delete();
                     $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_deleted_success'));
@@ -66,7 +66,7 @@ class ApplicationDeleteStateHandler extends BaseStateHandler implements StateHan
         }
 
         $applicationId = $context['application_ids'][$option];
-        $application = Apliccation::find($applicationId);
+        $application = Application::find($applicationId);
 
         if (! $application) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));

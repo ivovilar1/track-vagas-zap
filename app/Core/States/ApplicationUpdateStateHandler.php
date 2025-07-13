@@ -4,7 +4,7 @@ namespace App\Core\States;
 
 use App\Core\States\Interface\StateHandlerInterface;
 use App\Enums\ConversationStateEnum;
-use App\Models\Apliccation;
+use App\Models\Application;
 use App\Models\User;
 use App\Services\Whatsapp\EvolutionApiService;
 use Illuminate\Support\Facades\Validator;
@@ -29,7 +29,7 @@ class ApplicationUpdateStateHandler extends BaseStateHandler implements StateHan
             return;
         }
 
-        $application = Apliccation::query()->find($applicationId);
+        $application = Application::query()->find($applicationId);
         if (! $application) {
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.application_not_found'));
             $this->evolutionApiService->sendTextMessage($user->phone, __('bot_messages.main_menu'));

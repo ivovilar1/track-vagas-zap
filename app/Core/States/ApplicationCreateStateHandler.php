@@ -4,7 +4,7 @@ namespace App\Core\States;
 
 use App\Core\States\Interface\StateHandlerInterface;
 use App\Enums\ConversationStateEnum;
-use App\Models\Apliccation;
+use App\Models\Application;
 use App\Models\User;
 use App\Services\Whatsapp\EvolutionApiService;
 use Illuminate\Support\Facades\Validator;
@@ -93,7 +93,7 @@ class ApplicationCreateStateHandler extends BaseStateHandler implements StateHan
             }
             $context['job_link'] = $value;
 
-            Apliccation::query()->create([
+            Application::query()->create([
                 'user_id' => $user->id,
                 'company_name' => $context['company_name'],
                 'job_title' => $context['job_title'],

@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use App\Enums\ApplicationStatusEnum;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Apliccation extends Model
+class Application extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'company_name',
@@ -20,12 +23,12 @@ class Apliccation extends Model
         'application_date_end',
     ];
 
+    protected $casts = [
+        'status' => ApplicationStatusEnum::class,
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
-    protected $casts = [
-        'status' => ApplicationStatusEnum::class,
-    ];
 }
