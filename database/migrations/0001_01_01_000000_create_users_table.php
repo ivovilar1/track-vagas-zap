@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('phone')->unique();
             $table->string('conversation_state')->default(ConversationStateEnum::IDLE->value);
+            $table->json('context')->nullable();
             $table->timestamps();
         });
 

@@ -24,11 +24,18 @@ class User extends Authenticatable
         'email',
         'phone',
         'conversation_state',
+        'context',
     ];
 
-    protected $casts = [
-        'conversation_state' => ConversationStateEnum::class,
-    ];
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'conversation_state' => ConversationStateEnum::class,
+            'context' => 'array',
+        ];
+    }
 
     public function applications(): HasMany
     {

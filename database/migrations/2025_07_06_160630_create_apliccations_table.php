@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('company_name')->nullable();
             $table->string('job_title');
             $table->string('job_description')->nullable();
-            $table->string('job_salary')->nullable();
+            $table->decimal('job_salary', 10, 2)->nullable();
             $table->string('job_link')->nullable();
             $table->string('status')->default(ApplicationStatusEnum::PENDING->value);
             $table->date('application_date');
